@@ -7,38 +7,29 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/foodflow
+  AWS_REGION: eu-west-1
+  EKS_CLUSTER: foodflow-prod
 
 jobs:
-  # ── Build & Push Docker images ────────────────────────────────────────────────
   build-and-push:
     name: Build & Push ${{ matrix.service }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     strategy:
       matrix:
-        service:
-          - auth-service
-          - restaurant-service
-          - order-service
-          - payment-service
-          - notification-service
-
+        service: [auth-service, restaurant-service, order-service, payment-service, notification-service]
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -47,7 +38,6 @@ jobs:
           tags: |
             type=sha,prefix=sha-
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -58,44 +48,41 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── Deploy (Stage 8 placeholder — будет работать с EKS) ──────────────────────
   deploy:
-    name: Deploy to Kubernetes
+    name: Deploy to EKS
     runs-on: ubuntu-latest
     needs: build-and-push
     environment: production
-    # Раскомментировать в Этапе 8 (AWS EKS):
-    # env:
-    #   AWS_REGION: eu-west-1
-    #   EKS_CLUSTER: foodflow-prod
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      # Этап 8: раскомментировать для деплоя на EKS
+      # Раскомментировать после terraform apply (Этап 8):
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v4
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: ${{ env.AWS_REGION }}
-      #
       # - name: Update kubeconfig
       #   run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
-      #
       # - name: Helm upgrade
       #   run: |
       #     helm upgrade --install foodflow ./helm/foodflow \
       #       --set authService.image=${{ env.IMAGE_PREFIX }}-auth-service \
       #       --set authService.imageTag=sha-${{ github.sha }} \
+      #       --set restaurantService.image=${{ env.IMAGE_PREFIX }}-restaurant-service \
+      #       --set restaurantService.imageTag=sha-${{ github.sha }} \
       #       --set orderService.image=${{ env.IMAGE_PREFIX }}-order-service \
       #       --set orderService.imageTag=sha-${{ github.sha }} \
-      #       --wait --timeout=5m
+      #       --set paymentService.image=${{ env.IMAGE_PREFIX }}-payment-service \
+      #       --set paymentService.imageTag=sha-${{ github.sha }} \
+      #       --set notificationService.image=${{ env.IMAGE_PREFIX }}-notification-service \
+      #       --set notificationService.imageTag=sha-${{ github.sha }} \
+      #       --wait --timeout=5m --atomic
 
-      - name: Deploy summary
+      - name: Deployment summary
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "| Service | Image |" >> $GITHUB_STEP_SUMMARY
@@ -103,5 +90,4 @@ jobs:
           for svc in auth-service restaurant-service order-service payment-service notification-service; do
             echo "| $svc | ${{ env.IMAGE_PREFIX }}-$svc:sha-${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
           done
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Images pushed to ghcr.io. Deploy to EKS will be enabled in Stage 8." >> $GITHUB_STEP_SUMMARY
+          echo "Images pushed to ghcr.io. EKS deploy activates after terraform apply." >> $GITHUB_STEP_SUMMARY

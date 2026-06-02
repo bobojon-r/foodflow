@@ -1,0 +1,21 @@
+aws_region  = "eu-west-1"
+environment = "prod"
+
+# EKS
+eks_cluster_version     = "1.31"
+eks_node_instance_types = ["t3.medium"]
+eks_node_min            = 2
+eks_node_max            = 6
+eks_node_desired        = 3
+
+# RDS
+db_instance_class = "db.t3.micro"
+db_username       = "foodflow"
+db_password       = "CHANGE_ME_STRONG_PASSWORD"
+
+# MSK
+msk_instance_type = "kafka.t3.small"
+msk_kafka_version = "3.6.0"
+
+# App
+secret_key = "CHANGE_ME_RANDOM_256BIT_STRING"
