@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-service
+spec:
+  replicas: {{ .Values.restaurantService.replicas }}
+  selector:
+    matchLabels:
+      app: restaurant-service
+  template:
+    metadata:
+      labels:
+        app: restaurant-service
+    spec:
+      containers:
+        - name: restaurant-service
+          image: {{ .Values.restaurantService.image }}:{{ .Values.restaurantService.imageTag }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.restaurantService.port }}
+          env:
+            - name: DATABASE_URL
+              value: "postgresql+asyncpg://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@db-restaurant:5432/{{ .Values.restaurantService.dbName }}"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: foodflow-secret
+                  key: secret-key
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.restaurantService.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: {{ .Values.paymentService.replicas }}
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: {{ .Values.paymentService.image }}:{{ .Values.paymentService.imageTag }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.paymentService.port }}
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka:9092"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.paymentService.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5

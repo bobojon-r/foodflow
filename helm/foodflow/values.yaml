@@ -1,0 +1,51 @@
+global:
+  secretKey: "supersecretkey-change-in-production"
+
+postgres:
+  image: postgres:16-alpine
+  user: foodflow
+  password: foodflow
+  storage: 1Gi
+
+kafka:
+  image: apache/kafka:latest
+  storage: 1Gi
+
+authService:
+  image: foodflow-auth-service
+  imageTag: latest
+  replicas: 1
+  port: 8001
+  dbName: auth_db
+
+restaurantService:
+  image: foodflow-restaurant-service
+  imageTag: latest
+  replicas: 1
+  port: 8002
+  dbName: restaurant_db
+
+orderService:
+  image: foodflow-order-service
+  imageTag: latest
+  replicas: 1
+  port: 8003
+  dbName: order_db
+
+paymentService:
+  image: foodflow-payment-service
+  imageTag: latest
+  replicas: 1
+  port: 8004
+
+notificationService:
+  image: foodflow-notification-service
+  imageTag: latest
+  replicas: 1
+  port: 8005
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  cpuUtilization: 70

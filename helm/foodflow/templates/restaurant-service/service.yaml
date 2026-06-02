@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-service
+spec:
+  selector:
+    app: restaurant-service
+  ports:
+    - port: {{ .Values.restaurantService.port }}
+      targetPort: {{ .Values.restaurantService.port }}
+      nodePort: 30002
+  type: NodePort

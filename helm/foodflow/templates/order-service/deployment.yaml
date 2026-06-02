@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+spec:
+  replicas: {{ .Values.orderService.replicas }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: {{ .Values.orderService.image }}:{{ .Values.orderService.imageTag }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.orderService.port }}
+          env:
+            - name: DATABASE_URL
+              value: "postgresql+asyncpg://{{ .Values.postgres.user }}:{{ .Values.postgres.password }}@db-order:5432/{{ .Values.orderService.dbName }}"
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: foodflow-secret
+                  key: secret-key
+            - name: RESTAURANT_SERVICE_URL
+              value: "http://restaurant-service:{{ .Values.restaurantService.port }}"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka:9092"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.orderService.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5

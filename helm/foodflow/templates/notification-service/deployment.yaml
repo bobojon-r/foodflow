@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+spec:
+  replicas: {{ .Values.notificationService.replicas }}
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: {{ .Values.notificationService.image }}:{{ .Values.notificationService.imageTag }}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: {{ .Values.notificationService.port }}
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-0.kafka:9092"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.notificationService.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
