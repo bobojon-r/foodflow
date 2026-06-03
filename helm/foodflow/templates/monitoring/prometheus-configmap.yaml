@@ -1,0 +1,41 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      - job_name: auth-service
+        static_configs:
+          - targets: ["auth-service:{{ .Values.authService.port }}"]
+        metrics_path: /metrics
+
+      - job_name: restaurant-service
+        static_configs:
+          - targets: ["restaurant-service:{{ .Values.restaurantService.port }}"]
+        metrics_path: /metrics
+
+      - job_name: order-service
+        static_configs:
+          - targets: ["order-service:{{ .Values.orderService.port }}"]
+        metrics_path: /metrics
+
+      - job_name: payment-service
+        static_configs:
+          - targets: ["payment-service:{{ .Values.paymentService.port }}"]
+        metrics_path: /metrics
+
+      - job_name: notification-service
+        static_configs:
+          - targets: ["notification-service:{{ .Values.notificationService.port }}"]
+        metrics_path: /metrics
+{{- end }}

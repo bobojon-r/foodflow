@@ -9,6 +9,8 @@ from aiokafka.errors import KafkaConnectionError
 from fastapi import FastAPI
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.observability import setup_observability
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -73,6 +75,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 app = FastAPI(title="FoodFlow Notification Service", version="0.1.0", lifespan=lifespan)
+setup_observability(app, "notification-service")
 
 
 @app.get("/health")

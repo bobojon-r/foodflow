@@ -68,6 +68,42 @@ services:
       retries: 10
       start_period: 30s
 
+  # ── Observability ─────────────────────────────────────────────────────────────
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP gRPC
+      - "4318:4318"     # OTLP HTTP
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+
+  prometheus:
+    image: prom/prometheus:v2.55.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.enable-lifecycle"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+
   # ── Services ─────────────────────────────────────────────────────────────────
 
   auth-service:
@@ -79,6 +115,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://foodflow:foodflow@db-auth:5432/auth_db
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-change-in-production}
       DEBUG: ${DEBUG:-true}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
       db-auth:
         condition: service_healthy
@@ -95,6 +133,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://foodflow:foodflow@db-restaurant:5432/restaurant_db
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-change-in-production}
       DEBUG: ${DEBUG:-true}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
       db-restaurant:
         condition: service_healthy
@@ -113,6 +153,8 @@ services:
       RESTAURANT_SERVICE_URL: http://restaurant-service:8002
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       DEBUG: ${DEBUG:-true}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
       db-order:
         condition: service_healthy
@@ -131,6 +173,8 @@ services:
       - "8004:8004"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
       kafka:
         condition: service_healthy
@@ -145,6 +189,8 @@ services:
       - "8005:8005"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
       kafka:
         condition: service_healthy
@@ -156,3 +202,5 @@ volumes:
   db_auth_data:
   db_restaurant_data:
   db_order_data:
+  prometheus_data:
+  grafana_data:
