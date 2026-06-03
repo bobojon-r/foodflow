@@ -1,12 +1,38 @@
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
-.env
-venv/
-.venv/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+
+# Environment & secrets
+.env
+.env.local
+*.secret.yaml
+*.secret.yml
+helm/foodflow/values.override.yaml
+
+# Virtual environments
+venv/
+.venv/
+
+# Databases
 *.db
 *.sqlite3
+
+# Terraform (main state is in terraform/.gitignore, this covers root-level)
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform/
+terraform.tfvars
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

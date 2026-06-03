@@ -5,13 +5,13 @@ services:
   db-auth:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: foodflow
-      POSTGRES_PASSWORD: foodflow
+      POSTGRES_USER: ${POSTGRES_USER:-foodflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodflow}
       POSTGRES_DB: auth_db
     volumes:
       - db_auth_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U foodflow -d auth_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foodflow} -d auth_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,13 +19,13 @@ services:
   db-restaurant:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: foodflow
-      POSTGRES_PASSWORD: foodflow
+      POSTGRES_USER: ${POSTGRES_USER:-foodflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodflow}
       POSTGRES_DB: restaurant_db
     volumes:
       - db_restaurant_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U foodflow -d restaurant_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foodflow} -d restaurant_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,13 +33,13 @@ services:
   db-order:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: foodflow
-      POSTGRES_PASSWORD: foodflow
+      POSTGRES_USER: ${POSTGRES_USER:-foodflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodflow}
       POSTGRES_DB: order_db
     volumes:
       - db_order_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U foodflow -d order_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-foodflow} -d order_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -112,7 +112,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      DATABASE_URL: postgresql+asyncpg://foodflow:foodflow@db-auth:5432/auth_db
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-foodflow}:${POSTGRES_PASSWORD:-foodflow}@db-auth:5432/auth_db
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-change-in-production}
       DEBUG: ${DEBUG:-true}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -130,7 +130,7 @@ services:
     ports:
       - "8002:8002"
     environment:
-      DATABASE_URL: postgresql+asyncpg://foodflow:foodflow@db-restaurant:5432/restaurant_db
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-foodflow}:${POSTGRES_PASSWORD:-foodflow}@db-restaurant:5432/restaurant_db
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-change-in-production}
       DEBUG: ${DEBUG:-true}
       SENTRY_DSN: ${SENTRY_DSN:-}
@@ -148,7 +148,7 @@ services:
     ports:
       - "8003:8003"
     environment:
-      DATABASE_URL: postgresql+asyncpg://foodflow:foodflow@db-order:5432/order_db
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-foodflow}:${POSTGRES_PASSWORD:-foodflow}@db-order:5432/order_db
       SECRET_KEY: ${SECRET_KEY:-supersecretkey-change-in-production}
       RESTAURANT_SERVICE_URL: http://restaurant-service:8002
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
@@ -173,8 +173,8 @@ services:
       - "8004:8004"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}           # see .env
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}   # see README
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:
@@ -191,7 +191,7 @@ services:
       - "8005:8005"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}   # see README: how to get a token
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       SENTRY_DSN: ${SENTRY_DSN:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:

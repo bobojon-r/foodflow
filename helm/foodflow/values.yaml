@@ -1,9 +1,15 @@
+# Default values for local development (minikube).
+# For production, override with: helm upgrade --install foodflow . -f values.override.yaml
+# values.override.yaml is gitignored — never commit real passwords.
+
 global:
+  # Generate: python -c "import secrets; print(secrets.token_hex(32))"
   secretKey: "supersecretkey-change-in-production"
 
 postgres:
   image: postgres:16-alpine
   user: foodflow
+  # Override in values.override.yaml for production
   password: foodflow
   storage: 1Gi
 
@@ -37,12 +43,15 @@ paymentService:
   imageTag: latest
   replicas: 1
   port: 8004
+  stripeSecretKey: ""
+  stripeWebhookSecret: ""
 
 notificationService:
   image: foodflow-notification-service
   imageTag: latest
   replicas: 1
   port: 8005
+  telegramBotToken: ""
 
 hpa:
   enabled: true
