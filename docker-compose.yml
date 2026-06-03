@@ -173,6 +173,8 @@ services:
       - "8004:8004"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}           # see .env
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}   # see README
       SENTRY_DSN: ${SENTRY_DSN:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-jaeger:4317}
     depends_on:

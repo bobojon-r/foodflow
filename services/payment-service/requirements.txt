@@ -2,6 +2,7 @@ fastapi==0.115.5
 uvicorn[standard]==0.32.1
 pydantic-settings==2.6.1
 aiokafka==0.11.0
+stripe==11.2.0
 
 prometheus-fastapi-instrumentator==7.0.0
 sentry-sdk[fastapi]==2.19.2
