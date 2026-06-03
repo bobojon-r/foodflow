@@ -36,8 +36,10 @@ async def _create_payment_intent(order_id: str | int, amount_rub: float) -> str 
             intent.id, intent.status, order_id,
         )
 
-        # Publish immediately when webhook isn't configured
-        if intent.status == "succeeded" and not settings.STRIPE_WEBHOOK_SECRET:
+        # Publish directly when PaymentIntent is already succeeded.
+        # In production with a real frontend the webhook would handle this;
+        # here we auto-confirm with a test payment method so status is immediate.
+        if intent.status == "succeeded":
             await publish("payment.succeeded", {
                 "order_id": str(order_id),
                 "amount": amount_rub,
